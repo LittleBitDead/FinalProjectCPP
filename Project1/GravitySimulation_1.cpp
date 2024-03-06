@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     std::uniform_int_distribution<> distr(-45, 45); // Define the range
     std::uniform_int_distribution<> distrM(15, 25); // Define the range
 
-    int n = 1;
+    int n = 3;
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             Vector2D origin((i + 1) * 10, (j+1) * 20);
