@@ -5,7 +5,7 @@
 
 class Object {
 public:
-    virtual std::string toString() const {
+    virtual std::string toString() {
         std::stringstream ss;
         ss << this;
         return ss.str();

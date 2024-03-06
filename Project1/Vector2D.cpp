@@ -38,6 +38,27 @@ public:
         x *= scale;
         y *= scale;
     }
+    Vector* scalarMult(float scale) override {
+        Vector2D temp(x * scale, y * scale);
+        return &temp;
+    }
+
+    void add(Vector *v) override {
+        Vector2D *temp = (Vector2D*) v;
+        x += temp->x;
+        y += temp->y;
+    }
+
+    void sub(Vector *v) override {
+        Vector2D *temp = (Vector2D*) v;
+        x -= temp->x;
+        y -= temp->y;
+    }
+
+    float dotProduct(Vector *v) override {
+        Vector2D *temp = (Vector2D* ) v;
+        return x * temp->getX() + y * temp->getY();
+    }
 
     //Base Class
     std::string toString() {
@@ -47,28 +68,6 @@ public:
     }
     bool compareTo(Vector2D *v) {
         return x == v->x && y == v->y;
-    }
-
-protected:
-    // Virtual method implementation
-    virtual float dotProductV(const Vector &v1, const Vector &v2) override {
-        return 1.0f;
-    }
-
-    virtual Vector* crossProductV(const Vector &v1, const Vector &v2) override {
-        return nullptr;
-    }
-
-    virtual Vector* addV(const Vector &v1, const Vector &v2) override {
-        return nullptr;
-    }
-
-    virtual float angleV(const Vector &v1, const Vector &v2) override {
-        return 0.0f;
-    }
-
-    virtual Vector* projectV (const Vector &v1, const Vector &v2) override {
-        return nullptr;
     }
 };
 
