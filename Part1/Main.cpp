@@ -55,138 +55,77 @@ public:
 
 const int WIDTH = 520, HEIGHT = 520;
 const int sizeW = 6;
-const float delta = 0.02;
+const float GRAVITY = 5;
+const float GRAVITATIONAL_CONST = 1000;
+//A delta of ~0.002
+//Allows the XEvent framework
+//to preform drag, press and release events.
+//Changing this parameter might cause the program
+//To break.
+const float delta = 0.002;
+
+void generalDownGravity(Cir &c) {
+    c.ay += GRAVITY;
+}
 
 void gravityFunc(Cir &c1, Cir &c2) {
-    const float G = 0.1;
     float dx = c2.x - c1.x;
     float dy = c2.y - c1.y;
-    float force = (G * c1.mass * c2.mass) / (dx * dx + dy * dy);
-    c1.vx += force * dx / c1.mass;
-    c1.vy += force * dy / c1.mass;
-    c2.vx -= force * dx / c2.mass;
-    c2.vy -= force * dy / c2.mass;
-}
-void gravity(PhysicsSim *p) {
-    cout << "Clearing Previous Sim!" << endl;
-    p->clearSim();
-    cout << "Starting Gravity Sim!" << endl;
-    Cir c1 = {25, 0, 0, -5, -5, 1000, 1};
-    Cir c2 = {3, 50, 30, 0, 0, 10, -1};
-    Cir c3 = {6, -30, -70, 10, 20, 20, 0};
-    p->setForceFunction(gravityFunc);
-    p->addObjects(c1);
-    p->addObjects(c2);
-    p->addObjects(c3);
-}
-void elastic(PhysicsSim *p) {
-    cout << "Clearing Previous Sim!" << endl;
-    p->clearSim();
-    cout << "Starting Elastic Sim!" << endl;
-
-    int numCol = 10, numRow = 5;
-    float offsetX = p->getW()/numCol;
-    float offsetY = p->getH()/numRow;
-    float radius = offsetX / 5;
-    float mass = 5;
-
-    float maxV = 10;
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_real_distribution<double> dis(-maxV, maxV);
-
-    beginFrame();
-    for (int i = numCol/2 - numCol; i <= numCol/2; i++) {
-        for (int j = numRow/2 - numRow; j <= numRow/2; j++) {
-            Cir c = {radius,(float) i * offsetX,(float) j * offsetY, dis(gen), dis(gen), mass, 0};
-            p->addObjects(c);
-        }
-    }
-    endFrame();
-}
-void inelastic(PhysicsSim *p) {
-    cout << "Clearing Previous Sim!" << endl;
-    p->clearSim();
-    cout << "Starting Inelastic Sim!" << endl;
-
-    int numCol = 10, numRow = 5;
-    float offsetX = p->getW()/numCol;
-    float offsetY = p->getH()/numRow;
-    float radius = offsetX / 5;
-    float mass = 5;
-
-    float maxV = 5;
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_real_distribution<double> dis(-maxV, maxV);
-
-    beginFrame();
-    for (int i = numCol/2 - numCol; i <= numCol/2; i++) {
-        for (int j = numRow/2 - numRow; j <= numRow/2; j++) {
-            Cir c = {radius,(float) i * offsetX,(float) j * offsetY, dis(gen), dis(gen), mass, 0};
-            p->addObjects(c);
-        }
-    }
-    endFrame();
-    p->setElasticity(0.8);
-}
-void pendulum(PhysicsSim *p) {
-    cout << "Starting Pendulum Sim!" << endl;
-}
-void projectile(PhysicsSim *p) {
-    cout << "Starting Projectile Sim!" << endl;
-}
-void orbital(PhysicsSim *p) {
-    cout << "Starting Orbital Sim!" << endl;
-}
-void fluid(PhysicsSim *p) {
-    cout << "Starting Fluid Sim!" << endl;
-}
-void harmonic(PhysicsSim *p) {
-    cout << "Starting Harmonic Sim!" << endl;
-}
-void electrostatic(PhysicsSim *p) {
-    cout << "Starting Electrostatic Sim!" << endl;
-}
-void thermo(PhysicsSim *p) {
-    cout << "Starting Thermo Sim!" << endl;
+    float d2 = (dx * dx + dy * dy);
+    float force = (GRAVITATIONAL_CONST * c1.mass * c2.mass) / d2;
+    d2 = sqrt(d2);
+    float fx = (dx/d2) * force;
+    float fy = (dy/d2) * force;
+    c1.ax += fx / c1.mass;
+    c1.ay += fy / c1.mass;
+    c2.ax -= fx / c2.mass;
+    c2.ay -= fy / c2.mass;
 }
 
 int main() {
-
     initCanvas("Simulator", WIDTH, HEIGHT);
     Window w(WIDTH/2, HEIGHT - HEIGHT/sizeW, WIDTH, HEIGHT/sizeW * 2, "Options");
     PhysicsSim p(WIDTH/2, HEIGHT/sizeW * 2, WIDTH, HEIGHT/sizeW * 4, "Physics Sim");
-    //InputBox in(WIDTH/2, HEIGHT/2, 100, 100, "Hello");
-
-    //getClick();
-    //cout << in.getInput("Hello") << "<- INPUT" << endl;
-    //getClick();
 
     beginFrame();
+
     //Create Buttons
-    Button gravityB(40,425,70,30,"Gravity", gravity);
-    Button elasticB(120,425,70,30,"Elastic", elastic);
-    Button inelasticB(200,425,70,30,"Inelastic", inelastic);
-    Button pendulumB(280,425,70,30,"Pendulum", pendulum);
-    Button projectileB(360,425,70,30,"Projectile", projectile);
-    Button orbitalB(40,475,70,30,"Orbital", orbital);
-    Button fluidB(120,475,70,30,"Fluid", fluid);
-    Button harmonicB(200,475,70,30,"Harmonic", harmonic);
-    Button electrostaticB(280,475,70,30,"Electro", electrostatic);
-    Button thermoB(360, 475,70,30,"Thermo", thermo);
+    Button gravityB(40,425,70,30,"Gravity",
+    [&p]() {
+        cout << "Clearing Previous Sim!" << endl;
+        p.clearSim();
+        cout << "Starting Gravity Sim!" << endl;
+        //r x, y, vx, vy, m, c, ax, ay
+        Cir c1 = {35, 0, 0, 0, 0, 0, 0, 100, 0};
+        Cir c2 = {25, -150, 150, -100, 100, 0, 0, 20, 1};
+        Cir c3 = {10, 150, 150, 0, 10, 0, 0, 5, -1};
+        p.setForceFunctionBTWc(gravityFunc);
+        p.addObjects(c1);
+        p.addObjects(c2);
+        p.addObjects(c3);
+    }
+    );
+    //Button elasticB(120,425,70,30,"Elastic", elastic);
+    //Button inelasticB(200,425,70,30,"Inelastic", inelastic);
+    //Button pendulumB(280,425,70,30,"Pendulum", pendulum);
+    //Button projectileB(360,425,70,30,"Projectile", projectile);
+    //Button orbitalB(40,475,70,30,"Orbital", orbital);
+    //Button fluidB(120,475,70,30,"Fluid", fluid);
+    //Button harmonicB(200,475,70,30,"Harmonic", harmonic);
+    //Button electrostaticB(280,475,70,30,"Electro", electrostatic);
+    //Button thermoB(360, 475,70,30,"Thermo", thermo);
 
     //Add Buttons
     w.addButton(&gravityB);
-    w.addButton(&elasticB);
-    w.addButton(&inelasticB);
-    w.addButton(&pendulumB);
-    w.addButton(&projectileB);
-    w.addButton(&orbitalB);
-    w.addButton(&fluidB);
-    w.addButton(&harmonicB);
-    w.addButton(&electrostaticB);
-    w.addButton(&thermoB);
+    //w.addButton(&elasticB);
+    //w.addButton(&inelasticB);
+    //w.addButton(&pendulumB);
+    //w.addButton(&projectileB);
+    //w.addButton(&orbitalB);
+    //w.addButton(&fluidB);
+    //w.addButton(&harmonicB);
+    //w.addButton(&electrostaticB);
+    //w.addButton(&thermoB);
     endFrame();
 
     //Mouse
@@ -199,14 +138,17 @@ int main() {
     while (true) {
         if (checkEvent(event)) {
             if (mouseButtonReleaseEvent(event)) {
-                w.handleClick(event.xmotion.x, event.xmotion.y, &p);
+                w.handleClick(event.xmotion.x, event.xmotion.y);
                 p.handleIteract(event.xmotion.x, event.xmotion.y);
+                cout << event.xmotion.x << " PRESS " << event.xmotion.y<< endl;
             }
         }
-
         p.updatePhysics(delta);
         p.collisionDetection();
         p.updateGraphics();
+        //This makes sure that
+        //The XEvents are properly updated
+        //And is the physics time step
         wait(delta);
     }
 

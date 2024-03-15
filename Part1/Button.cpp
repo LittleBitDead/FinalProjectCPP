@@ -14,9 +14,9 @@ private:
     int width, height;
     Rectangle r;
     Text label;
-    function<void(PhysicsSim*)> onClick;
+    function<void()> onClick;
 public:
-    Button(int x, int y, int w, int h, string str, function<void(PhysicsSim*)> onClickF) :
+    Button(int x, int y, int w, int h, string str, function<void()> onClickF) :
             posX(x), posY(y), width(w), height(h), onClick(onClickF) {
         r = Rectangle(posX, posY, width, height);
         label = Text(posX, posY, str);
@@ -28,7 +28,7 @@ public:
         if (y < posY - height/2 || y > posY + height/2) return false;
         return true;
     }
-    void click(PhysicsSim *p) {
-        onClick(p);
+    void click() {
+        if (onClick != NULL) onClick();
     }
 };
