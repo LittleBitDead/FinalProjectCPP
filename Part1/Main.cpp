@@ -8,8 +8,6 @@
 #include "Button.cpp"
 #include "Window.cpp"
 
-using namespace std;
-
 class InputBox : public Window {
     bool active = false;
     //Default ESCAPE key
@@ -55,31 +53,30 @@ public:
 
 const int WIDTH = 520, HEIGHT = 520;
 const int sizeW = 6;
-const float GRAVITY = 5;
-const float GRAVITATIONAL_CONST = 1000;
-//A delta of ~0.002
-//Allows the XEvent framework
-//to preform drag, press and release events.
-//Changing this parameter might cause the program
-//To break.
-const float delta = 0.002;
+const double GRAVITY = 5;
+const double GRAVITATIONAL_CONST = 10000;
+const double DELTA = 0.01;
 
 void generalDownGravity(Cir &c) {
     c.ay += GRAVITY;
+    cout << "GRAV DOWN" << endl;
+    cout << c.x << " " << c.y << endl;
+    cout << c.vx << " " << c.vy << endl;
+    cout << c.ax << " " << c.ay << endl;
 }
 
 void gravityFunc(Cir &c1, Cir &c2) {
-    float dx = c2.x - c1.x;
-    float dy = c2.y - c1.y;
-    float d2 = (dx * dx + dy * dy);
-    float force = (GRAVITATIONAL_CONST * c1.mass * c2.mass) / d2;
-    d2 = sqrt(d2);
-    float fx = (dx/d2) * force;
-    float fy = (dy/d2) * force;
+    double dx = c2.x - c1.x;
+    double dy = c2.y - c1.y;
+    double force = GRAVITATIONAL_CONST * c1.mass * c2.mass / (dx * dx + dy * dy);
+    double angle = atan2(dy, dx);
+    double fx = cos(angle) * force;
+    double fy = sin(angle) * force;
     c1.ax += fx / c1.mass;
     c1.ay += fy / c1.mass;
     c2.ax -= fx / c2.mass;
     c2.ay -= fy / c2.mass;
+
 }
 
 int main() {
@@ -91,19 +88,21 @@ int main() {
 
     //Create Buttons
     Button gravityB(40,425,70,30,"Gravity",
-    [&p]() {
-        cout << "Clearing Previous Sim!" << endl;
-        p.clearSim();
-        cout << "Starting Gravity Sim!" << endl;
-        //r x, y, vx, vy, m, c, ax, ay
-        Cir c1 = {35, 0, 0, 0, 0, 0, 0, 100, 0};
-        Cir c2 = {25, -150, 150, -100, 100, 0, 0, 20, 1};
-        Cir c3 = {10, 150, 150, 0, 10, 0, 0, 5, -1};
-        p.setForceFunctionBTWc(gravityFunc);
-        p.addObjects(c1);
-        p.addObjects(c2);
-        p.addObjects(c3);
-    }
+        [&p]() {
+            cout << "Clearing Previous Sim!" << endl;
+            p.clearSim();
+            cout << "Starting Gravity Sim!" << endl;
+            //r x, y, vx, vy, m, c, ax, ay
+            Cir c1 = {35, 0, 0, 0, 0, 0, 0, 100, 0};
+            Cir c2 = {25, -100, 100, 0, 0, 0, 0, 20, 50};
+            Cir c3 = {16, 100, 100, 0, 0, 0, 0, 5, -50};
+            Cir c4 = {16, 150, 100, 0, 0, 0, 0, 5, 0};
+            p.setForceFunctionBTWc(gravityFunc);
+            p.addObjects(c1);
+            p.addObjects(c2);
+            p.addObjects(c3);
+            p.addObjects(c4);
+        }
     );
     //Button elasticB(120,425,70,30,"Elastic", elastic);
     //Button inelasticB(200,425,70,30,"Inelastic", inelastic);
@@ -143,13 +142,10 @@ int main() {
                 cout << event.xmotion.x << " PRESS " << event.xmotion.y<< endl;
             }
         }
-        p.updatePhysics(delta);
+        p.updatePhysics(DELTA);
         p.collisionDetection();
         p.updateGraphics();
-        //This makes sure that
-        //The XEvents are properly updated
-        //And is the physics time step
-        wait(delta);
+        wait(DELTA);
     }
 
     getClick();

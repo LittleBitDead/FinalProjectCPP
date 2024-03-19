@@ -6,8 +6,6 @@
 #include <iostream>
 #include <string>
 
-class PhysicsSim;
-
 class Button {
 private:
     int posX, posY;
