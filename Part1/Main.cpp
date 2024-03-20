@@ -55,7 +55,7 @@ const int WIDTH = 520, HEIGHT = 520;
 const int sizeW = 6;
 const double GRAVITY = 5;
 const double GRAVITATIONAL_CONST = 10000;
-const double DELTA = 0.01;
+const double DELTA = 0.005;
 
 void generalDownGravity(Cir &c) {
     c.ay += GRAVITY;
@@ -92,10 +92,9 @@ int main() {
             cout << "Clearing Previous Sim!" << endl;
             p.clearSim();
             cout << "Starting Gravity Sim!" << endl;
-            //r x, y, vx, vy, m, c, ax, ay
             Cir c1 = {35, 0, 0, 0, 0, 0, 0, 100, 0};
-            Cir c2 = {25, -100, 100, 0, 0, 0, 0, 20, 50};
-            Cir c3 = {16, 100, 100, 0, 0, 0, 0, 5, -50};
+            Cir c2 = {25, -100, 100, 0, 0, 0, 0, 70, 50};
+            Cir c3 = {16, 100, 100, 0, 0, 0, 0, 25, -50};
             Cir c4 = {16, 150, 100, 0, 0, 0, 0, 5, 0};
             p.setForceFunctionBTWc(gravityFunc);
             p.addObjects(c1);
@@ -104,8 +103,57 @@ int main() {
             p.addObjects(c4);
         }
     );
-    //Button elasticB(120,425,70,30,"Elastic", elastic);
-    //Button inelasticB(200,425,70,30,"Inelastic", inelastic);
+    Button elasticB(120,425,70,30,"Elastic",
+        [&p]() {
+            cout << "Clearing Previous Sim!" << endl;
+            p.clearSim();
+            p.setElasticity(0.99);
+            cout << "Starting Gravity Sim!" << endl;
+            //r x, y, vx, vy, m, c, ax, ay
+            int radius = 15;
+            int mass = 10;
+            int rows = 6, cols = 5;
+            int spacingX = p.getWidth() / rows;
+            int spacingY = p.getHeight() / cols;
+            int maxV = 1000;
+
+            beginFrame();
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < cols; j ++) {
+                    int x = p.getPosX() - p.getWidth() + spacingX * (i + 0.5);
+                    int y = p.getPosY() - p.getHeight() + spacingY * (j+ 0.5);
+                    Cir c = {radius, x, y,randuv(-maxV,maxV),randuv(-maxV,maxV),0,0,mass,0};
+                    p.addObjects(c);
+                }
+            }
+            endFrame();
+        }
+    );
+    Button inelasticB(200,425,70,30,"Inelastic",
+            [&p]() {
+            cout << "Clearing Previous Sim!" << endl;
+            p.clearSim();
+            p.setElasticity(0.8);
+            cout << "Starting Gravity Sim!" << endl;
+            //r x, y, vx, vy, m, c, ax, ay
+            int radius = 15;
+            int mass = 10;
+            int rows = 6, cols = 5;
+            int spacingX = p.getWidth() / rows;
+            int spacingY = p.getHeight() / cols;
+            int maxV = 1000;
+            beginFrame();
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < cols; j ++) {
+                    int x = p.getPosX() - p.getWidth() + spacingX * (i + 0.5);
+                    int y = p.getPosY() - p.getHeight() + spacingY * (j+ 0.5);
+                    Cir c = {radius, x, y, randuv(-maxV,maxV),randuv(-maxV,maxV),0,0,mass,0};
+                    p.addObjects(c);
+                }
+            }
+            endFrame();
+        }
+    );
     //Button pendulumB(280,425,70,30,"Pendulum", pendulum);
     //Button projectileB(360,425,70,30,"Projectile", projectile);
     //Button orbitalB(40,475,70,30,"Orbital", orbital);
@@ -116,8 +164,8 @@ int main() {
 
     //Add Buttons
     w.addButton(&gravityB);
-    //w.addButton(&elasticB);
-    //w.addButton(&inelasticB);
+    w.addButton(&elasticB);
+    w.addButton(&inelasticB);
     //w.addButton(&pendulumB);
     //w.addButton(&projectileB);
     //w.addButton(&orbitalB);
@@ -139,7 +187,7 @@ int main() {
             if (mouseButtonReleaseEvent(event)) {
                 w.handleClick(event.xmotion.x, event.xmotion.y);
                 p.handleIteract(event.xmotion.x, event.xmotion.y);
-                cout << event.xmotion.x << " PRESS " << event.xmotion.y<< endl;
+                //cout << event.xmotion.x << " PRESS " << event.xmotion.y<< endl;
             }
         }
         p.updatePhysics(DELTA);

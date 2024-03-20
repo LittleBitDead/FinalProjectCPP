@@ -24,6 +24,14 @@ public:
         label = Text(posX, posY - height/5 * 2, n);
         label.setZIndex(100);
     }
+    int getPosX() { return posX; }
+    int getPosY() { return posY; }
+    int getWidth() { return width; }
+    int getHeight() { return height; }
+    void setPosX(int newX) { posX = newX; }
+    void setPosY(int newY) { posX = newY; }
+    void setWidth(int newW) { width = newW;  }
+    void setHeight(int newH) { height = newH; ; }
     void addButton(Button* btn) {
         btns.push_back(btn);
     }
@@ -113,18 +121,26 @@ public:
         generalF = func;
     }
 
+    double mapVal(double input) {
+        const double start = 200;
+        const double min = 50;
+        const double slope = -2;
+
+        double out = start + slope*input;
+        return out < min ? min : out;
+    }
+
     void addObjects(Cir c) {
         c.x += posX;
         c.y += posY;
         circles.push_back(c);
         Circle cg(c.x, c.y, c.r);
         cg.setFill(true);
-        if (c.charge > 0)
-            cg.setColor(COLOR(200 - (int)(c.mass - c.charge),200 - c.mass,200 - c.mass));
-        if (c.charge < 0)
-            cg.setColor(COLOR(200 - (int)c.mass,200 - (int)c.mass,200 - (int)(c.mass + c.charge)));
-        if (c.charge == 0)
-            cg.setColor(COLOR(200 - (int)c.mass,200 - (int)c.mass,200 - (int)c.mass));
+        int mapped = mapVal(c.mass);
+        int r = mapped;
+        int g = mapped;
+        int b = mapped;
+        cg.setColor(COLOR(r,g,b));
 
         circlesG.push_back(cg);
 
@@ -155,34 +171,35 @@ public:
     }
 
     void collisionDetection() {
-        for (unsigned int i = 0; i < circles.size(); i++) {
-            Cir &c1 = circles[i];
-            checkBoarder(c1);
-            for (unsigned int j = i + 1; j < circles.size(); j++) {
-                //Collision Happens
-                float d = distance(circles[i].x, circles[i].y, circles[j].x, circles[j].y);
-                if (d < circles[i].r + circles[j].r) {
-                    //Resolve overlap
-                    double dx = circles[j].x - circles[i].x;
-                    double dy = circles[j].y - circles[i].y;
-                    double angle = atan2(dy, dx);
-                    double xOff = cos(angle) * (circles[i].r + circles[j].r - d);
-                    double yOff = sin(angle) * (circles[i].r + circles[j].r - d);
-                    circles[i].x -= xOff/2;
-                    circles[i].y -= yOff/2;
-                    circles[j].x += xOff/2;
-                    circles[j].y += yOff/2;
-                    //Resolve Momentum
-                    //Normals
-                    d = distance(circles[i].x, circles[i].y, circles[j].x, circles[j].y);
-                    double nx = dx/d;
-                    double ny = dy/d;
-                    double relV = (circles[j].vx - circles[i].vx) * nx + (circles[j].vy - circles[i].vy) * ny;
-                    double imp = 2 * relV / (1.0/circles[i].mass + 1.0/circles[j].mass);
-                    circles[i].vx += imp/circles[i].mass * nx;
-                    circles[i].vy += imp/circles[i].mass * ny;
-                    circles[j].vx -= imp/circles[j].mass * nx;
-                    circles[j].vy -= imp/circles[j].mass * ny;
+        for (int iter = 0; iter < 3; iter++) {
+            for (unsigned int i = 0; i < circles.size(); i++) {
+                Cir &c1 = circles[i];
+                checkBoarder(c1);
+                for (unsigned int j = i + 1; j < circles.size(); j++) {
+                    //Collision Happens
+                    float d = distance(circles[i].x, circles[i].y, circles[j].x, circles[j].y);
+                    if (d < circles[i].r + circles[j].r) {
+                        //Resolve overlap
+                        double dx = circles[j].x - circles[i].x;
+                        double dy = circles[j].y - circles[i].y;
+                        double angle = atan2(dy, dx);
+                        double xOff = cos(angle) * (circles[i].r + circles[j].r - d);
+                        double yOff = sin(angle) * (circles[i].r + circles[j].r - d);
+                        circles[i].x -= xOff/2;
+                        circles[i].y -= yOff/2;
+                        circles[j].x += xOff/2;
+                        circles[j].y += yOff/2;
+                        //Resolve Momentum
+                        //Normals
+                        double nx = dx/d;
+                        double ny = dy/d;
+                        double relV = (circles[j].vx - circles[i].vx) * nx + (circles[j].vy - circles[i].vy) * ny;
+                        double imp = 2 * relV / (1.0/circles[i].mass + 1.0/circles[j].mass) * elasticity;
+                        circles[i].vx += imp/circles[i].mass * nx;
+                        circles[i].vy += imp/circles[i].mass * ny;
+                        circles[j].vx -= imp/circles[j].mass * nx;
+                        circles[j].vy -= imp/circles[j].mass * ny;
+                    }
                 }
             }
         }
@@ -270,7 +287,7 @@ public:
                     }
 
                     //SlowMotion
-                    updatePhysics(0.01);
+                    updatePhysics(0.001);
                     collisionDetection();
                     updateGraphics();
                 }
