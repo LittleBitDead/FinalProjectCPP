@@ -8,4 +8,8 @@ The current window simulates 3 phenomenon: Gravity between objects, ellastic and
 To Run:
 1. Locate Main.exe inside of Part1/Main.exe. There will be 2 other files named Button.* and Window.*.
 2. Running Main.exe will open up the physics simulation window which will be split into 2 parts.
-![Main Window](StartingWindow.png)
+<details open>
+  <summary>Hello</summary>
+  ![Main Window](StartingWindow.png)
+</details>
+
