@@ -1,7 +1,7 @@
 Professor: Alam Z.
 Student: Larry S.
 
-Project 1: Interactive Physics Simulation Program
+#Project 1: Interactive Physics Simulation Program
 
 The current window simulates 3 phenomenon: Gravity between objects, ellastic and inellastic collisions.
 
