@@ -14,3 +14,6 @@ To Run:
     <summary>Show Main Window</summary>
     <IMG src="StartingWindow.png"  alt="Starting Window"/>
 </details>
+
+3. Hovering on the buttons will fade them slightly to show the user that they are interactable. Upon clicking, the simulation will reset to whatever option is choosen. The INFO MODE button is currently not working.
+4. Once a simulation has been started the user is able to click on the circles to get information such as: mass, charge, position, velocity, and acceleration. The user is also able to click and drag to move the circles around by adding velocity to them.
