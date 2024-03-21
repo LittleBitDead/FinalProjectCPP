@@ -1,7 +1,8 @@
-# Professor: Alam Z.
-# Student: Larry S.
+Professor: Alam Z.
+Class: C++ Course
+Student: Larry S.
 
-#Project 1: Interactive Physics Simulation Program
+## Project 1: Interactive Physics Simulation Program
 
 The current window simulates 3 phenomenon: Gravity between objects, ellastic and inellastic collisions.
 
@@ -10,6 +11,6 @@ To Run:
 2. Running Main.exe will open up the physics simulation window which will be split into 2 parts.
 
 <details>
-    <summary>click to expand</summary>
+    <summary>Show Main Window</summary>
     <IMG src="StartingWindow.png"  alt="Starting Window"/>
-  </details>
+</details>
