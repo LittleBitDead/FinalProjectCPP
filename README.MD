@@ -1,5 +1,5 @@
-Professor: Alam Z.
-Student: Larry S.
+# Professor: Alam Z.
+# Student: Larry S.
 
 #Project 1: Interactive Physics Simulation Program
 
