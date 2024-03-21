@@ -83,7 +83,6 @@ int main() {
     initCanvas("Simulator", WIDTH, HEIGHT);
     Window w(WIDTH/2, HEIGHT - HEIGHT/sizeW, WIDTH, HEIGHT/sizeW * 2, "Options");
     PhysicsSim p(WIDTH/2, HEIGHT/sizeW * 2, WIDTH, HEIGHT/sizeW * 4, "Physics Sim");
-
     beginFrame();
 
     //Create Buttons
@@ -161,6 +160,12 @@ int main() {
     //Button harmonicB(200,475,70,30,"Harmonic", harmonic);
     //Button electrostaticB(280,475,70,30,"Electro", electrostatic);
     //Button thermoB(360, 475,70,30,"Thermo", thermo);
+    Button toggleDebug(475, 475,70,30,"INFO MODE",
+        [&p]() {
+            cout << p.getInfoMode();
+            p.setInfoMode(!p.getInfoMode());
+        }
+    );
 
     //Add Buttons
     w.addButton(&gravityB);
@@ -173,6 +178,7 @@ int main() {
     //w.addButton(&harmonicB);
     //w.addButton(&electrostaticB);
     //w.addButton(&thermoB);
+    w.addButton(&toggleDebug);
     endFrame();
 
     //Mouse
@@ -181,13 +187,11 @@ int main() {
     event.xmotion.x = 0;
     event.xmotion.y = 0;
 
-    nextEvent(event);
     while (true) {
+        w.handleClick(mousex(), mousey(), mouseButtonReleaseEvent(event));
         if (checkEvent(event)) {
             if (mouseButtonReleaseEvent(event)) {
-                w.handleClick(event.xmotion.x, event.xmotion.y);
                 p.handleIteract(event.xmotion.x, event.xmotion.y);
-                //cout << event.xmotion.x << " PRESS " << event.xmotion.y<< endl;
             }
         }
         p.updatePhysics(DELTA);

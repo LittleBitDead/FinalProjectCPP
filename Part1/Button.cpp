@@ -22,8 +22,11 @@ public:
         label.imprint();
     }
     bool containsPoint(int x, int y) {
-        if (x < posX - width/2 || x > posX + width/2) return false;
-        if (y < posY - height/2 || y > posY + height/2) return false;
+        if (x < posX - width/2 || x > posX + width/2 || y < posY - height/2 || y > posY + height/2) {
+            r.setColor(colors::BLACK);
+            return false;
+        }
+        r.setColor(colors::LIGHTGRAY);
         return true;
     }
     void click() {

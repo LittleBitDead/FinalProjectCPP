@@ -35,13 +35,13 @@ public:
     void addButton(Button* btn) {
         btns.push_back(btn);
     }
-    void handleClick(int x, int y) {
+    void handleClick(int x, int y, bool click) {
         if (x < posX - width/2) return;
         if (x > posX + width/2) return;
         if (y < posY - height/2) return;
         if (y > posY + height/2) return;
         for (unsigned int i = 0; i < btns.size(); i++) {
-            if (btns[i]->containsPoint(x, y)) {
+            if (btns[i]->containsPoint(x, y) && click) {
                 btns[i]->click();
                 break;
             }
@@ -69,6 +69,7 @@ struct Spr {
 
 class PhysicsSim : public Window {
 private:
+    bool infoMode = false;
     double elasticity = 1;
     bool borderCollision = true;
     vector<Cir> circles;
@@ -100,6 +101,15 @@ private:
         }
     }
 
+    double mapVal(double input) {
+        const double start = 200;
+        const double min = 50;
+        const double slope = -2;
+
+        double out = start + slope*input;
+        return out < min ? min : out;
+    }
+
 public:
     PhysicsSim(int x, int y, int w, int h, string n) :
     Window(x,y,w,h,n) { }
@@ -121,14 +131,15 @@ public:
         generalF = func;
     }
 
-    double mapVal(double input) {
-        const double start = 200;
-        const double min = 50;
-        const double slope = -2;
-
-        double out = start + slope*input;
-        return out < min ? min : out;
+    bool getInfoMode() {
+        return infoMode;
     }
+
+    void setInfoMode(bool b) {
+        infoMode = b;
+    }
+
+
 
     void addObjects(Cir c) {
         c.x += posX;
@@ -256,7 +267,9 @@ public:
 
                 Line l(c.x,c.y,c.x,c.y);
                 Line velLine(c.x,c.y, c.x + c.vx, c.y + c.vy);
+                velLine.setColor(colors::BLUE);
                 Line accLine(c.x,c.y, c.x + c.ax, c.y + c.ay);
+                accLine.setColor(colors::RED);
                 while (true) {
                     if (checkEvent(event)) {
                         if (mouseButtonReleaseEvent(event)) {
