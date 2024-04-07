@@ -11,7 +11,7 @@ Running Main.exe will open up the physics simulation window which will be split 
 
 <details>
     <summary>Show Main Window</summary>
-    <IMG src="StartingWindow.png"  alt="Starting Window"/>
+    <IMG src="Project1/image/StartingWindow.png"  alt="Starting Window"/>
 </details>
 
 3. Hovering on the buttons will fade them slightly to show the user that they are interactable. Upon clicking, the simulation will reset to whatever option is choosen. The INFO MODE button is currently not working.
