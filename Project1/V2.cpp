@@ -7,6 +7,11 @@ public:
     double x, y;
     V2(double x, double y) : x(x), y(y) {}
 
+    void operator=(const V2 &other) {
+        x = other.x;
+        y = other.y;
+    }
+
     V2 operator+(const V2 &other) const {
         return V2(x + other.x, y + other.y);
     }

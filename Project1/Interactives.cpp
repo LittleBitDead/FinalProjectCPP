@@ -89,8 +89,7 @@ private:
         while (true) {
             if (kbhit()) {
                 key = getch();
-                if (key == ESCAPE_CHAR) return;
-                if (ismouseclick(MOUSE_LMB_DOWN)) return;
+                if (key == ESCAPE_CHAR) break;
                 else {
                     cout << key << endl;
                 }
@@ -107,8 +106,6 @@ public:
         height = h;
         text = str;
     }
-
-
 
     void onClick(int x, int y) override {
         if (clickCheck(x,y)) {
@@ -263,15 +260,15 @@ public:
     }
 
     void updatePhysics(double delta) {
+
+
         for (unsigned int i = 0; i < circles.size(); i++) {
             circles[i]->resetAcc();
             if (generalF != NULL) {
                 generalF(*circles[i]);
             }
         }
-        for (unsigned int i = 0; i < joints.size(); i++) {
-            joints[i]->calcForce();
-        }
+
         if(forceBTWc != NULL) {
             for (unsigned int i = 0; i < circles.size(); i++) {
                 if (circles[i]->isLocked) continue;
@@ -280,6 +277,10 @@ public:
                     forceBTWc(*circles[i], *circles[j]);
                 }
             }
+        }
+
+        for (unsigned int i = 0; i < joints.size(); i++) {
+            joints[i]->calcForce();
         }
 
         for (unsigned int i = 0; i < circles.size(); i++) {

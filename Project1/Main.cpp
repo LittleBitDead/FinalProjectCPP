@@ -155,21 +155,37 @@ int main() {
         p.clearSim();
         p.setElasticity(userInelastic);
         cout << "Starting Pendulum Sim!" << endl;
-        int penLen = 50;
-        int sy = 200;
+        int penLen = 250;
+        int sy = 70;
 
-        Circle *c1 = new Circle(p.getWidth()/4, sy, 20, 20, 0);
+        Circle *a1 = new Circle(p.getWidth()/4 * 1, sy, 5, 5, 0);
+        Circle *a2 = new Circle(p.getWidth()/4 * 2, sy, 5, 5, 0);
+        Circle *a3 = new Circle(p.getWidth()/4 * 3, sy, 5, 5, 0);
 
-        Circle *a1 = new Circle(p.getWidth()/4, sy - penLen, 5, 5, 0);
+        Circle *c1 = new Circle(p.getWidth()/4 * 1, sy + penLen, 15, 15, 0);
+        Circle *c2 = new Circle(p.getWidth()/4 * 2, sy + penLen*2/3, 15, 15, 0);
+        Circle *c3 = new Circle(p.getWidth()/4 * 3, sy + penLen/3, 15, 15, 0);
 
-        a1->setStatic(true);
         c1->vel.x = 150;
+        c2->vel.x = 150;
+        c3->vel.x = 150;
 
-        RigidJoint* j1 = new RigidJoint(a1, c1, 50);
+        HingeJoint* j1 = new HingeJoint(a1, c1, penLen);
+        HingeJoint* j2 = new HingeJoint(a2, c2, penLen*2/3);
+        HingeJoint* j3 = new HingeJoint(a3, c3, penLen/3);
+        HingeJoint* j3 = new HingeJoint(a3, c3, penLen/3);
+
+        p.addObjects(a1);
+        p.addObjects(a2);
+        p.addObjects(a3);
 
         p.addObjects(c1);
-        p.addObjects(a1);
+        p.addObjects(c2);
+        p.addObjects(c3);
+
         p.addObjects(j1);
+        p.addObjects(j2);
+        p.addObjects(j3);
 
         p.setForceFunctionGeneral(generalDownGravity);
         }
@@ -285,7 +301,7 @@ int main() {
     startY += h * 2 + bp;
     Button *thermoB = new Button(startX,startY,w,h,text, NULL);
 
-    text = "Soft Body";
+    text = "Soft/Ridig";
     startX += w + bp;
     Button *softB = new Button(startX,startY,w,h,text,
     [&p]() {
@@ -294,18 +310,25 @@ int main() {
             p.setElasticity(userInelastic);
             cout << "Starting Soft Body Sim!" << endl;
 
-            int midX = p.getWidth()/2;
+            int midX = p.getWidth()/4;
             int midY = p.getHeight()/2;
             int offset = 50;
 
             int springF = 10000;
-            int springD = 1;
+            int springD = 1.3;
 
             Circle *c1 = new Circle(midX - offset, midY - offset, 15, 30, 0);
             Circle *c2 = new Circle(midX - offset, midY + offset, 15, 30, 0);
             Circle *c3 = new Circle(midX + offset, midY - offset, 15, 30, 0);
             Circle *c4 = new Circle(midX + offset, midY + offset, 15, 30, 0);
             Circle *c5 = new Circle(midX, midY, 15, 30, 0);
+
+            midX *= 3;
+            Circle *c6 = new Circle(midX - offset, midY - offset, 15, 30, 0);
+            Circle *c7 = new Circle(midX - offset, midY + offset, 15, 30, 0);
+            Circle *c8 = new Circle(midX + offset, midY - offset, 15, 30, 0);
+            Circle *c9 = new Circle(midX + offset, midY + offset, 15, 30, 0);
+            Circle *c10 = new Circle(midX, midY, 15, 30, 0);
 
             SpringJoint* j1 = new SpringJoint(c1,c2, springF, offset * 2, springD);
             SpringJoint* j2 = new SpringJoint(c2,c4, springF, offset * 2, springD);
@@ -316,11 +339,25 @@ int main() {
             SpringJoint* j7 = new SpringJoint(c3,c5, springF, offset * 2, springD);
             SpringJoint* j8 = new SpringJoint(c4,c5, springF, offset * 2, springD);
 
+            RigidJoint* j11 = new RigidJoint(c6,c7, 100);
+            RigidJoint* j12 = new RigidJoint(c7,c9, 100);
+            RigidJoint* j13 = new RigidJoint(c8,c6, 100);
+            RigidJoint* j14 = new RigidJoint(c9,c8, 100);
+            RigidJoint* j15 = new RigidJoint(c6,c10,70.7106781187);
+            RigidJoint* j16 = new RigidJoint(c7,c10,70.7106781187);
+            RigidJoint* j17 = new RigidJoint(c8,c10,70.7106781187);
+            RigidJoint* j18 = new RigidJoint(c9,c10,70.7106781187);
+
             p.addObjects(c1);
             p.addObjects(c2);
             p.addObjects(c3);
             p.addObjects(c4);
             p.addObjects(c5);
+            p.addObjects(c6);
+            p.addObjects(c7);
+            p.addObjects(c8);
+            p.addObjects(c9);
+            p.addObjects(c10);
 
             p.addObjects(j1);
             p.addObjects(j2);
@@ -330,6 +367,14 @@ int main() {
             p.addObjects(j6);
             p.addObjects(j7);
             p.addObjects(j8);
+            p.addObjects(j11);
+            p.addObjects(j12);
+            p.addObjects(j13);
+            p.addObjects(j14);
+            p.addObjects(j15);
+            p.addObjects(j16);
+            p.addObjects(j17);
+            p.addObjects(j18);
             p.setForceFunctionGeneral(generalDownGravity);
         }
     );

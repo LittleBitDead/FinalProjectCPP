@@ -3,6 +3,8 @@
 #include "V2.cpp"
 #include <graphics.h>
 
+#define FIXED_DELTA 0.003
+
 using namespace std;
 
 struct PhysicsObj2D {
@@ -12,7 +14,7 @@ struct PhysicsObj2D {
     V2 vel = V2(0,0);
     V2 acc = V2(0,0);
     bool isLocked = false;
-    bool infoMode = false;
+    bool infoMode = true;
     virtual void draw() = 0;
     void update(const double D) {
         if (isLocked) return;
@@ -55,9 +57,13 @@ struct Circle : public PhysicsObj2D {
 
         if (infoMode) {
             setcolor(colors::RED);
-            line(pos.x, pos.y, pos.x + vel.x, pos.y + vel.y);
+            double magV = vel.mag() / 20.0;
+            double magA = acc.mag() / 20.0;
+            if (magV == 0) magV = 1.0;
+            if (magA == 0) magA = 1.0;
+            line(pos.x, pos.y, pos.x + vel.x / magV, pos.y + vel.y/magV);
             setcolor(colors::BLUE);
-            line(pos.x, pos.y, pos.x + acc.x, pos.y + acc.y);
+            line(pos.x, pos.y, pos.x + acc.x / magA, pos.y + acc.y / magA);
         }
     }
 };
@@ -124,24 +130,69 @@ public:
 
 struct RigidJoint: public Joint2D {
     double length;
-    const double TOLERANCE = 0.2;
+    const double TOLERANCE = 0.01;
     RigidJoint(PhysicsObj2D *from, PhysicsObj2D *to, double l) {
         length = l;
         this->from = from;
         this->to = to;
     }
+
     void draw() override {
         setlinestyle(line_styles::SOLID_LINE, 0, 2);
         setcolor(colors::BLACK);
         line(from->pos.x, from->pos.y, to->pos.x, to->pos.y);
     }
+
     void calcForce() override {
-        double dist = from->pos<to->pos;
-        if (abs(length - dist) > TOLERANCE) {
-            V2 dir = from->pos - to->pos;
-            V2 norm = dir * (1.0/dir.mag());
-            V2 perp(-norm.y, norm.x);
-            to->vel = perp * to->vel.mag();
+        V2 relPos = to->pos - from->pos;
+        double dist = relPos.mag();
+        double offset = length - dist;
+        if (abs(offset) > 0.0) {
+            V2 norm = relPos * (1.0/dist);
+            V2 relVel = to->vel - from->vel;
+
+            double consMass = (1.0/to->mass) + (1.0/from->mass);
+
+            double velDot = norm.dot(relVel);
+            double biasF = 0.1;
+            double bias = -(biasF/FIXED_DELTA) * offset * 10;
+            double lambda = -(velDot + bias) / consMass;
+            V2 toImp = norm * lambda;
+            V2 fromImp = norm * -lambda;
+
+            to->vel += toImp * (1.0/to->mass);
+            from->vel += fromImp * (1.0/from->mass);
         }
     }
+};
+
+struct HingeJoint: public Joint2D {
+    double length;
+    const double TOLERANCE = 0.01;
+    HingeJoint(PhysicsObj2D *from, PhysicsObj2D *to, double l) {
+        length = l;
+        this->from = from;
+        from->isLocked = true;
+        this->to = to;
+    }
+
+    void draw() override {
+        setlinestyle(line_styles::SOLID_LINE, 0, 2);
+        setcolor(colors::BLACK);
+        line(from->pos.x, from->pos.y, to->pos.x, to->pos.y);
+    }
+
+    void calcForce() override {
+        V2 relPos = to->pos - from->pos;
+        V2 norm = relPos * (1.0/relPos.mag());
+        V2 perp(-norm.y, norm.x);
+
+        double dist = relPos.mag();
+        double offset = length - dist;
+        double angle = atan2(relPos.y, relPos.x);
+        V2 perpAcc = (perp * (to->acc.mag() * cos(angle)));
+        to->acc = perpAcc;
+        to->vel -= (norm * (norm.dot(to->vel)));
+        to->pos = (from->pos + (norm * length));
+        }
 };
