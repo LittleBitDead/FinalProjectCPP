@@ -12,14 +12,15 @@
 
 #define FIXED_DELTA 0.003
 
-float const GRAVITY = 1000;
-float const GRAVITATIONAL_CONST = 10000;
-float const INELASTIC_CONST = 0.8;
+double const GRAVITY = 1000;
+double const GRAVITATIONAL_CONST = 10000;
+double const ELECTROSTATIC_CONST = 10000;
+double const INELASTIC_CONST = 0.8;
 
-float userGravDown = 1000;
-float userGravConst = 10000;
-float userElctroStaticConst = 10000;
-float userInelastic = 0.8;
+double userGravDown = 1000;
+double userGravConst = 10000;
+double userElctroStaticConst = 10000;
+double userInelastic = 0.8;
 
 
 using namespace std;
@@ -56,6 +57,12 @@ int main() {
     ObjectSim p(width/2, height*ratio/2, width - pad,height*ratio - pad, "PHYSICS OBJECTS SIM");
     Window win(width/2, height - height*(1.0 - ratio)/2, width - pad,height*(1.0-ratio) - pad, "OPTIONS");
 
+    char *msg1 = "Welcome to the physics sim!";
+    char *msg2 = "Press the buttons to";
+    char *msg3 = "start a simulation, reset";
+    char *msg4 = "and adjut parameters.";
+    char *msg5 = "CLICK and DRAG to move objects";
+
     //Create Buttons
     char* text = "Gravity";
     int bp = 10;
@@ -63,7 +70,7 @@ int main() {
     int startX = w;
     int startY = 90;
     Button *gravityB = new Button(startX,startY,w,h,"Gravity",
-        [&p]() {
+        [&p, &msg1, &msg2, &msg3, &msg4]() {
             cout << "Clearing Previous Sim!" << endl;
             p.clearSim();
             cout << "Starting Gravity Sim!" << endl;
@@ -77,13 +84,18 @@ int main() {
             p.addObjects(c3);
             p.addObjects(c4);
             p.setForceFunctionBTWc(gravityFunc);
+            msg1 = "Gravity!";
+            msg2 = "Using Newtons Gravity";
+            msg3 = "Law: F = G(mM)/(r^2)";
+            msg4 = "Objects pull together";
+
         }
     );
 
     text = "Elastic";
     startX += w + bp;
     Button *elasticB = new Button(startX,startY,w,h,text,
-        [&p]() {
+        [&p, &msg1, &msg2, &msg3, &msg4]() {
             cout << "Clearing Previous Sim!" << endl;
             p.clearSim();
             cout << "Starting Elastic Sim!" << endl;
@@ -109,14 +121,17 @@ int main() {
                     p.addObjects(c);
                 }
             }
-
+            msg1 = "Elasticity!";
+            msg2 = "Objects do not lose";
+            msg3 = "any energy and";
+            msg4 = "bounce forever";
         }
     );
 
     text = "Inelastic";
     startX += w + bp;
     Button *inelasticB = new Button(startX,startY,w,h,text,
-        [&p]() {
+        [&p, &msg1, &msg2, &msg3, &msg4]() {
             cout << "Clearing Previous Sim!" << endl;
             p.clearSim();
             p.setElasticity(userInelastic);
@@ -143,6 +158,10 @@ int main() {
                     p.addObjects(c);
                 }
             }
+            msg1 = "Inelastic!";
+            msg2 = "Objects lose energy";
+            msg3 = "and eventually";
+            msg4 = "come to a stop";
         }
     );
 
@@ -150,7 +169,7 @@ int main() {
     startX = w;
     startY += h * 2 + bp;
     Button *pendulumB = new Button(startX,startY,w,h,text,
-    [&p]() {
+    [&p, &msg1, &msg2, &msg3, &msg4]() {
         cout << "Clearing Previous Sim!" << endl;
         p.clearSim();
         p.setElasticity(userInelastic);
@@ -164,16 +183,18 @@ int main() {
 
         Circle *c1 = new Circle(p.getWidth()/4 * 1, sy + penLen, 15, 15, 0);
         Circle *c2 = new Circle(p.getWidth()/4 * 2, sy + penLen*2/3, 15, 15, 0);
-        Circle *c3 = new Circle(p.getWidth()/4 * 3, sy + penLen/3, 15, 15, 0);
+        Circle *c3 = new Circle(p.getWidth()/4 * 3, sy + penLen/5, 5, 15, 0);
+        Circle *c4 = new Circle(p.getWidth()/4 * 3, sy + penLen/5 * 2, 5, 15, 0);
 
         c1->vel.x = 150;
         c2->vel.x = 150;
         c3->vel.x = 150;
+        c4->vel.x = 550;
 
         HingeJoint* j1 = new HingeJoint(a1, c1, penLen);
         HingeJoint* j2 = new HingeJoint(a2, c2, penLen*2/3);
-        HingeJoint* j3 = new HingeJoint(a3, c3, penLen/3);
-        HingeJoint* j3 = new HingeJoint(a3, c3, penLen/3);
+        HingeJoint* j3 = new HingeJoint(a3, c3, penLen/5);
+        RigidJoint* j4 = new RigidJoint(c3, c4, penLen/5);
 
         p.addObjects(a1);
         p.addObjects(a2);
@@ -182,26 +203,30 @@ int main() {
         p.addObjects(c1);
         p.addObjects(c2);
         p.addObjects(c3);
+        p.addObjects(c4);
 
         p.addObjects(j1);
         p.addObjects(j2);
         p.addObjects(j3);
+        p.addObjects(j4);
 
         p.setForceFunctionGeneral(generalDownGravity);
+
+        msg1 = "Pendulums!";
+        msg2 = "The frequency of the";
+        msg3 = "depends on: length, gravity";
+        msg4 = "but not initial energy";
         }
     );
 
-    text = "Projectile";
-    startX += w + bp;
-    Button *projectileB = new Button(startX,startY,w,h,text, NULL);
-
     text = "Orbital";
     startX += w + bp;
-    Button *orbitalB = new Button(startX,startY,w,h,text, [&p]() {
+    Button *orbitalB = new Button(startX,startY,w,h,text,
+    [&p, &msg1, &msg2, &msg3, &msg4]() {
         cout << "Clearing Previous Sim!" << endl;
         p.clearSim();
         p.setBorderCollision(false);
-        cout << "Starting Gravity Sim!" << endl;
+        cout << "Starting Orbital Sim!" << endl;
 
         int midX = p.getWidth()/2;
         int midY = p.getHeight()/2;
@@ -221,21 +246,21 @@ int main() {
         p.addObjects(c2);
         p.addObjects(c3);
         p.setForceFunctionBTWc(gravityFunc);
+        msg1 = "Kepler!";
+        msg2 = "For any time interval";
+        msg3 = "the amount of area covered";
+        msg4 = "is the same throughout the orbit";
     }
     );
 
-    text = "Fluid";
-    startX = w;
-    startY += h * 2 + bp;
-    Button *fluidB = new Button(startX,startY,w,h,text, NULL);
-
     text = "Harmonic";
     startX += w + bp;
-    Button *harmonicB = new Button(startX,startY,w,h,text, [&p]() {
+    Button *harmonicB = new Button(startX,startY,w,h,text,
+    [&p, &msg1, &msg2, &msg3, &msg4]() {
         cout << "Clearing Previous Sim!" << endl;
         p.clearSim();
         p.setElasticity(userInelastic);
-        cout << "Starting Pendulum Sim!" << endl;
+        cout << "Starting Harmonic Sim!" << endl;
         int penLen = 50;
         int sy = 200;
 
@@ -269,12 +294,18 @@ int main() {
         p.addObjects(j3);
         p.addObjects(j4);
         p.setForceFunctionGeneral(generalDownGravity);
+        msg1 = "Springs!";
+        msg2 = "Using hooke's law";
+        msg3 = "F = -kx, we can simulate ";
+        msg4 = "harmonic/soft body systems";
         }
     );
 
     text = "Electro";
-    startX += w + bp;
-    Button *electrostaticB = new Button(startX,startY,w,h,text, [&p]() {
+    startX = w;
+    startY += h * 2 + bp;
+    Button *electrostaticB = new Button(startX,startY,w,h,text,
+    [&p, &msg1, &msg2, &msg3, &msg4]() {
             cout << "Clearing Previous Sim!" << endl;
             p.clearSim();
             p.setElasticity(userInelastic);
@@ -293,22 +324,21 @@ int main() {
             p.addObjects(c5);
             p.addObjects(c6);
             p.setForceFunctionBTWc(electroStaticFunc);
+            msg1 = "Electro!";
+            msg2 = "Similar to gravity";
+            msg3 = "F = kqQ/(r^2), Opposites attract";
+            msg4 = "likes repel";
         }
     );
-
-    text = "Thermo";
-    startX = w;
-    startY += h * 2 + bp;
-    Button *thermoB = new Button(startX,startY,w,h,text, NULL);
 
     text = "Soft/Ridig";
     startX += w + bp;
     Button *softB = new Button(startX,startY,w,h,text,
-    [&p]() {
+    [&p, &msg1, &msg2, &msg3, &msg4]() {
         cout << "Clearing Previous Sim!" << endl;
             p.clearSim();
             p.setElasticity(userInelastic);
-            cout << "Starting Soft Body Sim!" << endl;
+            cout << "Starting Soft/Ridig Body Sim!" << endl;
 
             int midX = p.getWidth()/4;
             int midY = p.getHeight()/2;
@@ -376,6 +406,27 @@ int main() {
             p.addObjects(j17);
             p.addObjects(j18);
             p.setForceFunctionGeneral(generalDownGravity);
+            msg1 = "Bodies!";
+            msg2 = "Using rigid arms and springs";
+            msg3 = "We can put everything together";
+            msg4 = "to simulate cool physics bodies";
+        }
+    );
+
+    text = "RESET";
+    startX += w + bp;
+    Button *resetB = new Button(startX,startY,w,h,text,
+    [&p, &msg1, &msg2, &msg3, &msg4]() {
+            p.clearSim();
+            cout << "RESET!" << endl;
+            userGravDown = GRAVITY;
+            userGravConst = GRAVITATIONAL_CONST;
+            userElctroStaticConst = ELECTROSTATIC_CONST;
+            userInelastic = INELASTIC_CONST;
+            msg1 = "Welcome to the physics sim!";
+            msg2 = "Press the buttons to";
+            msg3 = "start a simulation, reset";
+            msg4 = "and adjut parameters.";
         }
     );
 
@@ -383,19 +434,31 @@ int main() {
     win.addButton(gravityB);
     win.addButton(elasticB);
     win.addButton(inelasticB);
-    win.addButton(pendulumB);
-    win.addButton(projectileB);
+    win.addButton(pendulumB);;
     win.addButton(orbitalB);
-    win.addButton(fluidB);
     win.addButton(harmonicB);
     win.addButton(electrostaticB);
-    win.addButton(thermoB);
     win.addButton(softB);
+    win.addButton(resetB);
 
+    //Add Input
     char* hi = "Gravity";
     startY = 90;
-    InputBox *in = new InputBox(win.getWidth() / 2 + 50, startY, w, h, hi);
-    win.addButton(in);
+    InputBox *in1 = new InputBox(win.getWidth() / 2, startY, w, h, hi, &userGravDown);
+    hi = "Grav Const";
+    startY += 50;
+    InputBox *in2 = new InputBox(win.getWidth() / 2, startY, w, h, hi, &userGravConst);
+    hi = "Electro";
+    startY += 50;
+    InputBox *in3 = new InputBox(win.getWidth() / 2, startY, w, h, hi, &userElctroStaticConst);
+    hi = "Inelastic";
+    startY += 50;
+    InputBox *in4 = new InputBox(win.getWidth() / 2, startY, w, h, hi, &userInelastic);
+
+    win.addButton(in1);
+    win.addButton(in2);
+    win.addButton(in3);
+    win.addButton(in4);
 
 
     //Timings
@@ -417,6 +480,12 @@ int main() {
         //Draw
         p.draw();
         win.draw();
+        settextjustify(LEFT_TEXT, VCENTER_TEXT);
+        outtextxy(width - 230, height-200, msg1);
+        outtextxy(width - 230, height-170, msg2);
+        outtextxy(width - 230, height-140, msg3);
+        outtextxy(width - 230, height-110, msg4);
+        outtextxy(width - 230, height-80, msg5);
 
         //Check for user input
         int x,y;
@@ -424,6 +493,7 @@ int main() {
         if (x != -1 && y != -1) {
             cout << "CLICK" << endl;
             win.onClick(x, y);
+            p.onClick(x,y);
             clearmouseclick(WM_LBUTTONDOWN);
         }
 

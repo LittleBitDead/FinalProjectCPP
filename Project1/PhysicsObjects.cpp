@@ -13,7 +13,9 @@ struct PhysicsObj2D {
     V2 pos = V2(0,0);
     V2 vel = V2(0,0);
     V2 acc = V2(0,0);
+    //Prevents physics updates
     bool isLocked = false;
+    //Debugging info
     bool infoMode = true;
     virtual void draw() = 0;
     void update(const double D) {
@@ -114,6 +116,7 @@ public:
         line(last.x, last.y, to->pos.x, to->pos.y);
     }
 
+    //Hooke's Law
     void calcForce() {
         V2 deltaC = to->pos - from->pos;
         double deltaD = deltaC.mag() - length;
@@ -130,7 +133,6 @@ public:
 
 struct RigidJoint: public Joint2D {
     double length;
-    const double TOLERANCE = 0.01;
     RigidJoint(PhysicsObj2D *from, PhysicsObj2D *to, double l) {
         length = l;
         this->from = from;
@@ -143,6 +145,7 @@ struct RigidJoint: public Joint2D {
         line(from->pos.x, from->pos.y, to->pos.x, to->pos.y);
     }
 
+    //XPBD Algoriythm
     void calcForce() override {
         V2 relPos = to->pos - from->pos;
         double dist = relPos.mag();
@@ -154,8 +157,8 @@ struct RigidJoint: public Joint2D {
             double consMass = (1.0/to->mass) + (1.0/from->mass);
 
             double velDot = norm.dot(relVel);
-            double biasF = 0.1;
-            double bias = -(biasF/FIXED_DELTA) * offset * 10;
+            double biasF = 0.02;
+            double bias = -(biasF/FIXED_DELTA) * offset;
             double lambda = -(velDot + bias) / consMass;
             V2 toImp = norm * lambda;
             V2 fromImp = norm * -lambda;
@@ -168,7 +171,6 @@ struct RigidJoint: public Joint2D {
 
 struct HingeJoint: public Joint2D {
     double length;
-    const double TOLERANCE = 0.01;
     HingeJoint(PhysicsObj2D *from, PhysicsObj2D *to, double l) {
         length = l;
         this->from = from;
@@ -182,6 +184,8 @@ struct HingeJoint: public Joint2D {
         line(from->pos.x, from->pos.y, to->pos.x, to->pos.y);
     }
 
+    //Only perpendicular vectors applied
+    //Norm cancelation
     void calcForce() override {
         V2 relPos = to->pos - from->pos;
         V2 norm = relPos * (1.0/relPos.mag());
@@ -194,5 +198,5 @@ struct HingeJoint: public Joint2D {
         to->acc = perpAcc;
         to->vel -= (norm * (norm.dot(to->vel)));
         to->pos = (from->pos + (norm * length));
-        }
+    }
 };

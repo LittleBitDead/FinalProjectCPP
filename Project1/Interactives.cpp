@@ -6,12 +6,17 @@
 #include <vector>
 #include <conio.h>
 #include <thread>
+#include <cstdlib>
+#include <cstdio>
+
 
 #include "V2.cpp"
 #include "PhysicsObjects.cpp"
 
 #define ESCAPE_CHAR 27
 #define MOUSE_LMB_DOWN 513
+#define ENTER_CHAR 13
+#define PI 3.14159265358979323846
 
 class Element {
 protected:
@@ -80,38 +85,68 @@ class InputBox: public Element {
 protected:
     static bool lock;
 private:
+    bool interacting = false;
     char *text;
-    double data;
+    char buffer[20];
+    char *ptr = buffer;
+    double *data;
 
     void userInput() {
+        cout << "THREAD START" << endl;
         lock = true;
-        char key;
+        interacting = true;
+        ostringstream stream;
+        //Clear
+        while (kbhit()) {
+            getch();
+        }
         while (true) {
             if (kbhit()) {
-                key = getch();
-                if (key == ESCAPE_CHAR) break;
-                else {
-                    cout << key << endl;
+                char k = getch();
+                switch ((int)k) {
+                    case ESCAPE_CHAR: {
+                        lock = false;
+                        interacting = false;
+                        return;
+                    }
+                    case ENTER_CHAR: {
+                        goto FINISH;
+                    }
                 }
+                stream << k;
+                strncpy(buffer, stream.str().c_str(), sizeof(buffer) - 1);
             }
         }
+        FINISH:
+        const char *in = stream.str().c_str();
+        char* endPtr;
+        double result = strtod(in, &endPtr);
+        if (endPtr != in && *endPtr == '\0') {
+            std::cout << "Conversion successful. Double value: " << result << std::endl;
+            *data = result;
+        } else {
+            snprintf(buffer, sizeof(buffer), "%.2f", *data);
+            std::cout << "Conversion failed. Invalid input." << std::endl;
+        }
+        interacting = false;
         lock = false;
+        cout << "THREAD END" << endl;
     }
 
 public:
-    InputBox(int x, int y, int w, int h, char* str) {
+    InputBox(int x, int y, int w, int h, char* str, double *d) {
         posX = x;
         posY = y;
         width = w;
         height = h;
         text = str;
+        data = d;
+        snprintf(buffer, sizeof(buffer), "%.2f", *data);
     }
 
     void onClick(int x, int y) override {
         if (clickCheck(x,y)) {
-            cout << "INPUT BOX CLICK" << endl;
-            cout << lock << endl;
-            if (!lock) {
+            if (lock == false) {
                 std::thread getInput(&InputBox::userInput, this);
                 getInput.detach();
             }
@@ -119,9 +154,15 @@ public:
     }
 
     virtual void draw() override {
+        if (!lock)
+            snprintf(buffer, sizeof(buffer), "%.2f", *data);
         setcolor(colors::BLACK);
         setlinestyle(SOLID_LINE, 0, THICK_WIDTH);
-        setfillstyle(SOLID_FILL, DARKGRAY);
+        if (interacting) {
+            setfillstyle(BKSLASH_FILL, RED);
+        } else {
+            setfillstyle(SOLID_FILL, DARKGRAY);
+        }
         setbkcolor(DARKGRAY);
         rectangle(posX - width/2, posY - height,
                   posX + width/2, posY + height/2);
@@ -130,6 +171,8 @@ public:
         setcolor(WHITE);
         settextjustify(CENTER_TEXT, VCENTER_TEXT);
         outtextxy(posX, posY, text);
+        settextjustify(LEFT_TEXT, VCENTER_TEXT);
+        outtextxy(posX + 50, posY, buffer);
     }
 };
 
@@ -181,6 +224,7 @@ public:
 
 class ObjectSim : public Window {
 private:
+    static bool lock;
     double elasticity = 1;
     bool borderCollision = true;
     vector<Circle*> circles;
@@ -208,14 +252,35 @@ private:
         }
     }
 
+    void drag(Circle *circle) {
+        cout << "DRAG START" << endl;
+        lock = true;
+        POINT cursor;
+        while (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
+            GetCursorPos(&cursor);
+            circle->vel.x = 0;
+            circle->vel.y = 0;
+            circle->pos.x = cursor.x;
+            circle->pos.y = cursor.y - 25;
+        }
+
+        lock = false;
+        cout << "DRAG END" << endl;
+    }
+
 public:
     ObjectSim(int x, int y, int w, int h, char* c) : Window(x,y,w,h,c) {
     }
-    int getW() {return width;}
-    int getH() {return height;}
 
-    void setElasticity(double e) {
-        if (e<0.0 || e>1.0) return;
+    void setElasticity(double &e) {
+        if (e < 0.0) {
+            e = 0;
+            return;
+        }
+        if (e > 1.0) {
+            e = 1;
+            return;
+        }
         elasticity = e;
     }
     void setBorderCollision(bool b) {
@@ -251,7 +316,23 @@ public:
         joints.push_back(j);
     }
 
+    const int clickSize = 10;
+
     virtual void onClick(int x, int y) override {
+        const Circle clicker(x,y, clickSize, -1, 0);
+        for (unsigned int i = 0; i < circles.size(); i++) {
+            if (lock == false) {
+                float d = clicker.pos<circles[i]->pos;
+                if (d < circles[i]->r + clicker.r) {
+                    auto lambdaFunc = [&] (int i) {
+                        drag(circles[i]);
+                    };
+                    std::thread dragT(lambdaFunc, i);
+                    dragT.detach();
+                    break;
+                }
+            }
+        }
     }
 
     void fixedUpdate(float delta) {
@@ -260,8 +341,6 @@ public:
     }
 
     void updatePhysics(double delta) {
-
-
         for (unsigned int i = 0; i < circles.size(); i++) {
             circles[i]->resetAcc();
             if (generalF != NULL) {
@@ -289,7 +368,7 @@ public:
     }
 
     void collisionDetection() {
-        for (int iter = 0; iter < 3; iter++) {
+        for (int iter = 0; iter < 2; iter++) {
             for (unsigned int i = 0; i < circles.size(); i++) {
                 if (circles[i]->isLocked) continue;
                 Circle &c1 = *circles[i];
@@ -332,7 +411,4 @@ public:
     }
 };
 
-class ParticleSim : public Window {
-private:
-public:
-};
+bool ObjectSim::lock = false;
